@@ -1,0 +1,69 @@
+composer create-project laravel/laravel uas-backend-app
+cd uas-backend-app
+php artisan make:model Category -m
+php artisan make:model Product -m
+
+>>  database/migrations/..._create_products_table.php
+    public function up(): void {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');       // Tipe data Teks 
+            $table->integer('price');      // Tipe data Angka [cite: 27]
+            $table->text('description');   // Tipe data Teks 
+            $table->timestamps();
+        });
+    }
+
+php artisan migrate
+php artisan make:controller Api/AuthController
+php artisan make:controller Api/ProductController
+php artisan install:api
+
+app/Models/User.php
+    Tambahkan HasApiTokens
+
+php artisan make:migration add_columns_to_categories_table --table=categories
+>>  database/migrations/...add_columns_to_categories_table.php
+    public function up(): void
+    {
+        Schema::table('categories', function (Blueprint $table) {
+            $table->string('name')->after('id');      // Tipe Teks (VARCHAR)
+            $table->integer('priority')->after('name'); // Tipe Angka (INT)
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('categories', function (Blueprint $table) {
+            $table->dropColumn(['name', 'priority']);
+        });
+    }
+php artisan migrate
+php artisan make:controller Api/CategoryController --api
+
+php artisan make:migration add_category_id_to_products_table --table=products
+>>  database/migrations/...add_category_id_to_products_table.php
+    public function up(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            // Menambahkan kolom category_id sebagai foreign key
+            $table->foreignId('category_id')
+                ->after('id') // diletakkan setelah kolom id
+                ->nullable()  // boleh kosong dulu agar data lama tidak error
+                ->constrained('categories')
+                ->onDelete('cascade'); // Jika kategori dihapus, produk ikut terhapus
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropForeign(['category_id']);
+            $table->dropColumn('category_id');
+        });
+    }
+php artisan migrate
+
+
+>>  Git 
+    git init
